@@ -37,7 +37,7 @@ def scanline_convert(polygons, i, screen, zbuffer ):
     #print(T)
 
     #This is an ideal case
-    if ((T[1] > M[1]) and (M[1] > B[1])) and ((M[0] != B[0]) or M[0] != T[0]):
+    if ((int(T[1]) > int(M[1])) and (int(M[1]) > int(B[1]))) and ((int(M[0]) != int(B[0])) or int(M[0]) != int(T[0])):
         startX0 = B[0]
         startX1 = B[0]
 
@@ -51,7 +51,9 @@ def scanline_convert(polygons, i, screen, zbuffer ):
         while not(startY > T[1]):
             change_y = 1
             #If we cross the midline, the slope to change X1 must change
-            draw_line(int(startX0),int(startY),int(startZ0),int(startX1),int(startY),int(startZ1),screen,zbuffer,color)
+        
+            if not(startX1 < 0.1):
+                draw_line(int(startX0),int(startY),int(startZ0),int(startX1),int(startY),int(startZ1),screen,zbuffer,color)
             if (startY < M[1]):
                 change_1 = (M[0] - B[0]) / (M[1] - B[1])
                 change_1Z = (M[2] - B[2]) / (M[1] - B[1])
@@ -62,6 +64,7 @@ def scanline_convert(polygons, i, screen, zbuffer ):
             elif (startY >= M[1]):
                 change_1 = (M[0] - T[0]) / (M[1] - T[1])
                 change_1Z = (M[2] - T[2]) / (M[1] - T[1])
+
             startZ0 += change_0Z
             startZ1 += change_1Z
             startX0 += change_0
@@ -69,7 +72,7 @@ def scanline_convert(polygons, i, screen, zbuffer ):
             startY += change_y
 
     #If middle and bottom are the same
-    elif ((M[1] == B[1]) and (T[1] > M[1])) and ((B[0] != T[0]) or (M[0] != T[0])):
+    elif ((int(M[1]) == int(B[1])) and (int(T[1]) > int(M[1]))) and ((int(B[0]) != int(T[0])) or (int(M[0]) != int(T[0]))):
         startZ0 = M[2]
         startZ1 = B[2]
         startX0 = M[0]
@@ -88,7 +91,7 @@ def scanline_convert(polygons, i, screen, zbuffer ):
             startY += 1
 
     #If top and Middle are the same
-    elif ((T[1] == M[1]) and (T[1] > B[1])) and ((B[0] != T[0]) or (B[0] != M[0])):
+    elif ((int(T[1]) == int(M[1])) and (int(T[1]) > int(B[1]))) and ((int(B[0]) != int(T[0])) or (int(B[0]) != int(M[0]))):
         startZ0 = B[2]
         startZ1 = B[2]
         startX0 = B[0]
