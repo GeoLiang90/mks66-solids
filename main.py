@@ -15,5 +15,4 @@ csystems = [ t ]
 
 
 parse_file( 'script', edges, polygons, csystems, screen, zbuffer, color )
-
-
+#parse_file( 'test', edges, polygons, csystems, screen, zbuffer, color )
