@@ -35,321 +35,54 @@ def scanline_convert(polygons, i, screen, zbuffer ):
 
     T = mypoints[0]
     #print(T)
-
-    #This is an ideal case
-    if ((int(T[1]) > int(M[1])) and (int(M[1]) > int(B[1]))) and ((int(M[0]) != int(B[0])) or int(M[0]) != int(T[0])):
+    if (T[1] != B[1]):
         startX0 = B[0]
         startX1 = B[0]
-
         startZ0 = B[2]
         startZ1 = B[2]
-
         startY = B[1]
+        changex0 = 0
+        changex1 = 0
+        changez0y = 0
+        changez1y = 0
+        changezx = 0
+        #Under Midpoint case
+        if M[1] != B[1]:
+            changex0 = (M[0] - B[0]) / (M[1] - B[1])
 
-        change_0 = (T[0] - B[0]) / (T[1] - B[1])
-        change_0Z = (T[2] - B[2]) / (T[1] - B[1])
-        while not(startY > T[1]):
-            change_y = 1
-            #If we cross the midline, the slope to change X1 must change
-        
-            if not(startX1 < 0.1):
-                draw_line(int(startX0),int(startY),int(startZ0),int(startX1),int(startY),int(startZ1),screen,zbuffer,color)
-            if (startY < M[1]):
-                change_1 = (M[0] - B[0]) / (M[1] - B[1])
-                change_1Z = (M[2] - B[2]) / (M[1] - B[1])
-                    #print("Reached Here")
-            if (startY == M[1]):
-                startX1 = M[0]
-                startZ1 = M[2]
-            elif (startY >= M[1]):
-                change_1 = (M[0] - T[0]) / (M[1] - T[1])
-                change_1Z = (M[2] - T[2]) / (M[1] - T[1])
+        if T[1] != B[1]:
+            changex1 = (T[0] - B[0]) / (T[1] - B[1])
 
-            startZ0 += change_0Z
-            startZ1 += change_1Z
-            startX0 += change_0
-            startX1 += change_1
-            startY += change_y
 
-    #If middle and bottom are the same
-    elif ((int(M[1]) == int(B[1])) and (int(T[1]) > int(M[1]))) and ((int(B[0]) != int(T[0])) or (int(M[0]) != int(T[0]))):
-        startZ0 = M[2]
-        startZ1 = B[2]
+        if (M[1] != B[1]):
+            changez0y = (M[2] - B[2]) / (M[1] - B[1])
+
+        if (T[1] != B[1]):
+            changez1y = (T[2] - B[2]) / (T[1] - B[1])
+
+        if (changez0y != changez1y):
+            changezx = (changez1y - changez0y) / (changex1 - changex0)
+        #Under midline
+        while startY < M[1]:
+            draw_line(int(startX0),int(startY),int(startZ0),int(startX1),int(startY),int(startZ1),screen,zbuffer,color)
+            startX0 += changex0
+            startX1 += changex1
+            startZ0 += changez0y
+            startZ1 += changez1y
+            startY += 1
+        #At some point ill hit the midline so set x0 my changing point to the x of middle
         startX0 = M[0]
-        startX1 = B[0]
-        startY = B[1]
-        change_0 = (T[0] - M[0]) / (T[1] - M[1])
-        change_1 = (T[0] - B[0]) / (T[1] - B[1])
-        change_0Z = (T[0] - M[0]) / (T[1] - M[1])
-        change_1Z = (T[2] - B[2]) / (T[1] - B[1])
-        while not(startY > T[1]):
+        if (T[1] != M[1]):
+            changex0 = (T[0] - M[0]) / (T[1] - M[1])
+        else:
+            changex0 = 0
+        while startY < T[1]:
             draw_line(int(startX0),int(startY),int(startZ0),int(startX1),int(startY),int(startZ1),screen,zbuffer,color)
-            startX0 += change_0
-            startX1 += change_1
-            startZ0 += change_0Z
-            startZ1 += change_1Z
+            startX0 += changex0
+            startX1 += changex1
+            startZ0 += changez0y
+            startZ1 += changez1y
             startY += 1
-
-    #If top and Middle are the same
-    elif ((int(T[1]) == int(M[1])) and (int(T[1]) > int(B[1]))) and ((int(B[0]) != int(T[0])) or (int(B[0]) != int(M[0]))):
-        startZ0 = B[2]
-        startZ1 = B[2]
-        startX0 = B[0]
-        startX1 = B[0]
-        startY = B[1]
-        change_0 = (T[0] - B[0]) / (T[1] - B[1])
-        change_1 = (M[0] - B[0]) / (M[1] - B[1])
-        change_0Z = (T[2] - B[2]) / (T[1] - B[1])
-        change_1Z = (M[2] - B[2]) / (M[1] - B[1])
-        while not(startY > T[1]):
-            draw_line(int(startX0),int(startY),int(startZ0),int(startX1),int(startY),int(startZ1),screen,zbuffer,color)
-            startX0 += change_0
-            startX1 += change_1
-            startZ0 += change_0Z
-            startZ1 += change_1Z
-            startY += 1
-
-
-def add_polygon( polygons, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
-    add_point(polygons, x0, y0, z0)
-    add_point(polygons, x1, y1, z1)
-    add_point(polygons, x2, y2, z2)
-
-def draw_polygons( polygons, screen, zbuffer, color ):
-    if len(polygons) < 2:
-        print 'Need at least 3 points to draw'
-        return
-
-    point = 0
-    while point < len(polygons) - 2:
-
-        normal = calculate_normal(polygons, point)[:]
-        #print normal
-        if normal[2] > 0:
-            scanline_convert(polygons,point,screen,zbuffer)
-            '''
-            draw_line( int(polygons[point][0]),
-                       int(polygons[point][1]),
-                       polygons[point][2],
-                       int(polygons[point+1][0]),
-                       int(polygons[point+1][1]),
-                       polygons[point+1][2],
-                       screen, zbuffer, color)
-            draw_line( int(polygons[point+2][0]),
-                       int(polygons[point+2][1]),
-                       polygons[point+2][2],
-                       int(polygons[point+1][0]),
-                       int(polygons[point+1][1]),
-                       polygons[point+1][2],
-                       screen, zbuffer, color)
-            draw_line( int(polygons[point][0]),
-                       int(polygons[point][1]),
-                       polygons[point][2],
-                       int(polygons[point+2][0]),
-                       int(polygons[point+2][1]),
-                       polygons[point+2][2],
-                       screen, zbuffer, color)
-            '''
-        point+= 3
-
-
-def add_box( polygons, x, y, z, width, height, depth ):
-    x1 = x + width
-    y1 = y - height
-    z1 = z - depth
-
-    #front
-    add_polygon(polygons, x, y, z, x1, y1, z, x1, y, z)
-    add_polygon(polygons, x, y, z, x, y1, z, x1, y1, z)
-
-    #back
-    add_polygon(polygons, x1, y, z1, x, y1, z1, x, y, z1)
-    add_polygon(polygons, x1, y, z1, x1, y1, z1, x, y1, z1)
-
-    #right side
-    add_polygon(polygons, x1, y, z, x1, y1, z1, x1, y, z1)
-    add_polygon(polygons, x1, y, z, x1, y1, z, x1, y1, z1)
-    #left side
-    add_polygon(polygons, x, y, z1, x, y1, z, x, y, z)
-    add_polygon(polygons, x, y, z1, x, y1, z1, x, y1, z)
-
-    #top
-    add_polygon(polygons, x, y, z1, x1, y, z, x1, y, z1)
-    add_polygon(polygons, x, y, z1, x, y, z, x1, y, z)
-    #bottom
-    add_polygon(polygons, x, y1, z, x1, y1, z1, x1, y1, z)
-    add_polygon(polygons, x, y1, z, x, y1, z1, x1, y1, z1)
-
-def add_sphere(polygons, cx, cy, cz, r, step ):
-    points = generate_sphere(cx, cy, cz, r, step)
-
-    lat_start = 0
-    lat_stop = step
-    longt_start = 0
-    longt_stop = step
-
-    step+= 1
-    for lat in range(lat_start, lat_stop):
-        for longt in range(longt_start, longt_stop):
-
-            p0 = lat * step + longt
-            p1 = p0+1
-            p2 = (p1+step) % (step * (step-1))
-            p3 = (p0+step) % (step * (step-1))
-
-            if longt != step - 2:
-                add_polygon( polygons, points[p0][0],
-                             points[p0][1],
-                             points[p0][2],
-                             points[p1][0],
-                             points[p1][1],
-                             points[p1][2],
-                             points[p2][0],
-                             points[p2][1],
-                             points[p2][2])
-            if longt != 0:
-                add_polygon( polygons, points[p0][0],
-                             points[p0][1],
-                             points[p0][2],
-                             points[p2][0],
-                             points[p2][1],
-                             points[p2][2],
-                             points[p3][0],
-                             points[p3][1],
-                             points[p3][2])
-
-
-def generate_sphere( cx, cy, cz, r, step ):
-    points = []
-
-    rot_start = 0
-    rot_stop = step
-    circ_start = 0
-    circ_stop = step
-
-    for rotation in range(rot_start, rot_stop):
-        rot = rotation/float(step)
-        for circle in range(circ_start, circ_stop+1):
-            circ = circle/float(step)
-
-            x = r * math.cos(math.pi * circ) + cx
-            y = r * math.sin(math.pi * circ) * math.cos(2*math.pi * rot) + cy
-            z = r * math.sin(math.pi * circ) * math.sin(2*math.pi * rot) + cz
-
-            points.append([x, y, z])
-            #print 'rotation: %d\tcircle%d'%(rotation, circle)
-    return points
-
-def add_torus(polygons, cx, cy, cz, r0, r1, step ):
-    points = generate_torus(cx, cy, cz, r0, r1, step)
-
-    lat_start = 0
-    lat_stop = step
-    longt_start = 0
-    longt_stop = step
-
-    for lat in range(lat_start, lat_stop):
-        for longt in range(longt_start, longt_stop):
-
-            p0 = lat * step + longt;
-            if (longt == (step - 1)):
-                p1 = p0 - longt;
-            else:
-                p1 = p0 + 1;
-            p2 = (p1 + step) % (step * step);
-            p3 = (p0 + step) % (step * step);
-
-            add_polygon(polygons,
-                        points[p0][0],
-                        points[p0][1],
-                        points[p0][2],
-                        points[p3][0],
-                        points[p3][1],
-                        points[p3][2],
-                        points[p2][0],
-                        points[p2][1],
-                        points[p2][2] )
-            add_polygon(polygons,
-                        points[p0][0],
-                        points[p0][1],
-                        points[p0][2],
-                        points[p2][0],
-                        points[p2][1],
-                        points[p2][2],
-                        points[p1][0],
-                        points[p1][1],
-                        points[p1][2] )
-
-
-def generate_torus( cx, cy, cz, r0, r1, step ):
-    points = []
-    rot_start = 0
-    rot_stop = step
-    circ_start = 0
-    circ_stop = step
-
-    for rotation in range(rot_start, rot_stop):
-        rot = rotation/float(step)
-        for circle in range(circ_start, circ_stop):
-            circ = circle/float(step)
-
-            x = math.cos(2*math.pi * rot) * (r0 * math.cos(2*math.pi * circ) + r1) + cx;
-            y = r0 * math.sin(2*math.pi * circ) + cy;
-            z = -1*math.sin(2*math.pi * rot) * (r0 * math.cos(2*math.pi * circ) + r1) + cz;
-
-            points.append([x, y, z])
-    return points
-
-
-def add_circle( points, cx, cy, cz, r, step ):
-    x0 = r + cx
-    y0 = cy
-    i = 1
-
-    while i <= step:
-        t = float(i)/step
-        x1 = r * math.cos(2*math.pi * t) + cx;
-        y1 = r * math.sin(2*math.pi * t) + cy;
-
-        add_edge(points, x0, y0, cz, x1, y1, cz)
-        x0 = x1
-        y0 = y1
-        i+= 1
-
-def add_curve( points, x0, y0, x1, y1, x2, y2, x3, y3, step, curve_type ):
-
-    xcoefs = generate_curve_coefs(x0, x1, x2, x3, curve_type)[0]
-    ycoefs = generate_curve_coefs(y0, y1, y2, y3, curve_type)[0]
-
-    i = 1
-    while i <= step:
-        t = float(i)/step
-        x = t * (t * (xcoefs[0] * t + xcoefs[1]) + xcoefs[2]) + xcoefs[3]
-        y = t * (t * (ycoefs[0] * t + ycoefs[1]) + ycoefs[2]) + ycoefs[3]
-        #x = xcoefs[0] * t*t*t + xcoefs[1] * t*t + xcoefs[2] * t + xcoefs[3]
-        #y = ycoefs[0] * t*t*t + ycoefs[1] * t*t + ycoefs[2] * t + ycoefs[3]
-
-        add_edge(points, x0, y0, 0, x, y, 0)
-        x0 = x
-        y0 = y
-        i+= 1
-
-
-def draw_lines( matrix, screen, zbuffer, color ):
-    if len(matrix) < 2:
-        print 'Need at least 2 points to draw'
-        return
-
-    point = 0
-    while point < len(matrix) - 1:
-        draw_line( int(matrix[point][0]),
-                   int(matrix[point][1]),
-                   matrix[point][2],
-                   int(matrix[point+1][0]),
-                   int(matrix[point+1][1]),
-                   matrix[point+1][2],
-                   screen, zbuffer, color)
-        point+= 2
 
 def add_edge( matrix, x0, y0, z0, x1, y1, z1 ):
     add_point(matrix, x0, y0, z0)

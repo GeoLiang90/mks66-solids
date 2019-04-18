@@ -31,9 +31,12 @@ def plot( screen, zbuffer, color, x, y, z ):
     newy = YRES - 1 - y
     if ( x >= 0 and x < XRES and newy >= 0 and newy < YRES ):
         #Account for Z overlap when plotting by only adding in a Z value that goes in front
+    
         if zbuffer[newy][x] < z:
             zbuffer[newy][x] = z
             screen[newy][x] = color[:]
+
+        #screen[newy][x] = color[:]
 
 def clear_screen( screen ):
     for y in range( len(screen) ):
